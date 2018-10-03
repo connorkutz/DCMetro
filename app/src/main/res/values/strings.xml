@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Metroid</string>
+    <string name="source">Source</string>
+    <string name="destination">Destination</string>
+    <string name="remember">Remember</string>
+    <string name="go">Go</string>
+    <string name="alerts">Alerts</string>
+    <string name="lets_go">LETS GO!</string>
+    <string name="welcome">Welcome to Metroid</string>
+    <string name="welcome_fragment">WelcomeFragment</string>
 </resources>
