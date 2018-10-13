@@ -58,11 +58,13 @@ class HomeScreenActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
     override fun onStop() {
         super.onStop()
+        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
@@ -76,13 +78,19 @@ class HomeScreenActivity : AppCompatActivity() {
         } else {
             val editor = prefs.edit()
             editor.putBoolean(sourceRememberedPref, false)
+            editor.apply()
         }
         if (findViewById<Switch>(R.id.destinationSwitch).isChecked()) {
             val editor = prefs.edit()
             editor.putBoolean(destinationRememberedPref, true)
             editor.putString(destinationPref, findViewById<EditText>(R.id.destinationText).text.toString())
             editor.apply()
+        } else {
+            val editor = prefs.edit()
+            editor.putBoolean(destinationRememberedPref, false)
+            editor.apply()
         }
+
     }
 
 
@@ -92,7 +100,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 val builder = AlertDialog.Builder(it)
                 builder.setMessage(R.string.welcome)
                         .setPositiveButton(R.string.lets_go,
-                                DialogInterface.OnClickListener { dialog, id ->
+                                DialogInterface.OnClickListener { _, _ ->
                                     //continue to app
                                 })
                 builder.create()
