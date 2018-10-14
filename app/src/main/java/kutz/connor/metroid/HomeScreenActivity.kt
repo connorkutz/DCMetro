@@ -3,12 +3,18 @@ package kutz.connor.metroid
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.location.Geocoder
+import android.media.Image
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.DialogFragment
+import android.view.View
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Switch
+import android.widget.Toast
+import java.util.*
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -22,6 +28,8 @@ class HomeScreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_screen)
 
+
+        //initial setup and variable declarations
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val welcomeScreenShown = prefs.getBoolean(welcomeScreenShownPref, false)
         val sourceRemembered = prefs.getBoolean(sourceRememberedPref, false)
@@ -30,6 +38,9 @@ class HomeScreenActivity : AppCompatActivity() {
         val sourceText = findViewById<EditText>(R.id.sourceText)
         val destinationSwitch = findViewById<Switch>(R.id.destinationSwitch)
         val destinationText = findViewById<EditText>(R.id.destinationText)
+        val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
+        val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
+        val geocoder = Geocoder(this, Locale.getDefault())
 
 
         if (!welcomeScreenShown) {
@@ -54,17 +65,38 @@ class HomeScreenActivity : AppCompatActivity() {
             destinationSwitch.setChecked(false)
             destinationText.setText("")
         }
+        //setup finished
+
+        val onClickListener = View.OnClickListener { view ->
+            when(view.getId()){
+                R.id.sourceButton -> {
+
+                }
+                R.id.destinationButton -> {
+
+                }
+                R.id.goButton -> {
+                    Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
+                }
+                R.id.alertsButton -> {
+
+                }
+            }
+        }
+        sourceButton.setOnClickListener(onClickListener)
+
+
+
+
     }
 
     override fun onPause() {
         super.onPause()
-        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
     override fun onStop() {
         super.onStop()
-        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
