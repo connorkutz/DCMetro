@@ -14,7 +14,9 @@ import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Switch
 import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_home_screen.*
 import java.util.*
+import kotlin.math.max
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -68,22 +70,39 @@ class HomeScreenActivity : AppCompatActivity() {
         //setup finished
 
         val onClickListener = View.OnClickListener { view ->
-            when(view.getId()){
+            when(view.id){
                 R.id.sourceButton -> {
-
+                    val locationName = sourceText.text
+                    val maxResults = 3
+                    if (locationName.equals("")){
+                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        //perform geocoding in a separate thread
+                    }
                 }
                 R.id.destinationButton -> {
-
+                    val locationName = destinationText.text
+                    val maxResults = 3
+                    if (locationName.equals("")){
+                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
+                    }
+                    else{
+                        //perform geocoding in a separate thread
+                    }
                 }
                 R.id.goButton -> {
                     Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
                 }
                 R.id.alertsButton -> {
-
+                    Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
                 }
             }
         }
         sourceButton.setOnClickListener(onClickListener)
+        destinationButton.setOnClickListener(onClickListener)
+        goButton.setOnClickListener(onClickListener)
+        alertsButton.setOnClickListener(onClickListener)
 
 
 
