@@ -2,9 +2,11 @@ package kutz.connor.metroid
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.location.Geocoder
 import android.media.Image
+import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -42,7 +44,6 @@ class HomeScreenActivity : AppCompatActivity() {
         val destinationText = findViewById<EditText>(R.id.destinationText)
         val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
         val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
-        val geocoder = Geocoder(this, Locale.getDefault())
 
 
         if (!welcomeScreenShown) {
@@ -70,24 +71,22 @@ class HomeScreenActivity : AppCompatActivity() {
         //setup finished
 
         val onClickListener = View.OnClickListener { view ->
-            when(view.id){
+            when (view.id) {
                 R.id.sourceButton -> {
                     val locationName = sourceText.text
                     val maxResults = 3
-                    if (locationName.equals("")){
+                    if (locationName.equals("")) {
                         Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    }
-                    else{
+                    } else {
                         //perform geocoding in a separate thread
                     }
                 }
                 R.id.destinationButton -> {
                     val locationName = destinationText.text
                     val maxResults = 3
-                    if (locationName.equals("")){
+                    if (locationName.equals("")) {
                         Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    }
-                    else{
+                    } else {
                         //perform geocoding in a separate thread
                     }
                 }
@@ -103,8 +102,6 @@ class HomeScreenActivity : AppCompatActivity() {
         destinationButton.setOnClickListener(onClickListener)
         goButton.setOnClickListener(onClickListener)
         alertsButton.setOnClickListener(onClickListener)
-
-
 
 
     }
@@ -158,4 +155,6 @@ class HomeScreenActivity : AppCompatActivity() {
             } ?: throw IllegalStateException("Activity cannot be null")
         }
     }
+
+
 }
