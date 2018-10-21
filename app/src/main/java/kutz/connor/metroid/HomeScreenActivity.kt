@@ -2,11 +2,8 @@ package kutz.connor.metroid
 
 import android.app.AlertDialog
 import android.app.Dialog
-import android.content.Context
 import android.content.DialogInterface
 import android.location.Geocoder
-import android.media.Image
-import android.os.AsyncTask
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -17,8 +14,8 @@ import android.widget.ImageButton
 import android.widget.Switch
 import android.widget.Toast
 import kotlinx.android.synthetic.main.activity_home_screen.*
-import java.util.*
-import kotlin.math.max
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -74,20 +71,48 @@ class HomeScreenActivity : AppCompatActivity() {
             when (view.id) {
                 R.id.sourceButton -> {
                     val locationName = sourceText.text
-                    val maxResults = 3
+                    val maxResults = 1
                     if (locationName.equals("")) {
                         Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
                     } else {
-                        //perform geocoding in a separate thread
+                        doAsync{
+                            val geocoder = Geocoder(applicationContext)
+                            val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
+                            if(results.isEmpty()){
+                                uiThread {
+                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else {
+                                uiThread {
+                                    sourceText.setText(results[0].getAddressLine(0))
+                                }
+                            }
+                        }
+
+
                     }
                 }
                 R.id.destinationButton -> {
                     val locationName = destinationText.text
-                    val maxResults = 3
+                    val maxResults = 1
                     if (locationName.equals("")) {
                         Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
                     } else {
-                        //perform geocoding in a separate thread
+                        doAsync{
+                            val geocoder = Geocoder(applicationContext)
+                            val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
+                            if(results.isEmpty()){
+                                uiThread {
+                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else{
+                                uiThread {
+                                    destinationText.setText(results[0].getAddressLine(0))
+                                }
+                            }
+                        }
                     }
                 }
                 R.id.goButton -> {
@@ -103,7 +128,6 @@ class HomeScreenActivity : AppCompatActivity() {
         goButton.setOnClickListener(onClickListener)
         alertsButton.setOnClickListener(onClickListener)
 
-
     }
 
     override fun onPause() {
@@ -116,7 +140,7 @@ class HomeScreenActivity : AppCompatActivity() {
         setPrefs()
     }
 
-    fun setPrefs() {
+    private fun setPrefs() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         if (findViewById<Switch>(R.id.sourceSwitch).isChecked()) {
             val editor = prefs.edit()
@@ -141,7 +165,6 @@ class HomeScreenActivity : AppCompatActivity() {
 
     }
 
-
     class WelcomeDialogFragment : DialogFragment() {
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
             return activity?.let {
@@ -155,6 +178,5 @@ class HomeScreenActivity : AppCompatActivity() {
             } ?: throw IllegalStateException("Activity cannot be null")
         }
     }
-
 
 }
