@@ -3,12 +3,19 @@ package kutz.connor.metroid
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.location.Geocoder
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.DialogFragment
+import android.view.View
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.Switch
+import android.widget.Toast
+import kotlinx.android.synthetic.main.activity_home_screen.*
+import org.jetbrains.anko.doAsync
+import org.jetbrains.anko.uiThread
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -22,6 +29,8 @@ class HomeScreenActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_home_screen)
 
+
+        //initial setup and variable declarations
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val welcomeScreenShown = prefs.getBoolean(welcomeScreenShownPref, false)
         val sourceRemembered = prefs.getBoolean(sourceRememberedPref, false)
@@ -30,6 +39,8 @@ class HomeScreenActivity : AppCompatActivity() {
         val sourceText = findViewById<EditText>(R.id.sourceText)
         val destinationSwitch = findViewById<Switch>(R.id.destinationSwitch)
         val destinationText = findViewById<EditText>(R.id.destinationText)
+        val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
+        val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
 
 
         if (!welcomeScreenShown) {
@@ -54,21 +65,82 @@ class HomeScreenActivity : AppCompatActivity() {
             destinationSwitch.setChecked(false)
             destinationText.setText("")
         }
+        //setup finished
+
+        val onClickListener = View.OnClickListener { view ->
+            when (view.id) {
+                R.id.sourceButton -> {
+                    val locationName = sourceText.text
+                    val maxResults = 1
+                    if (locationName.equals("")) {
+                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
+                    } else {
+                        doAsync{
+                            val geocoder = Geocoder(applicationContext)
+                            val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
+                            if(results.isEmpty()){
+                                uiThread {
+                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else {
+                                uiThread {
+                                    sourceText.setText(results[0].getAddressLine(0))
+                                }
+                            }
+                        }
+
+
+                    }
+                }
+                R.id.destinationButton -> {
+                    val locationName = destinationText.text
+                    val maxResults = 1
+                    if (locationName.equals("")) {
+                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
+                    } else {
+                        doAsync{
+                            val geocoder = Geocoder(applicationContext)
+                            val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
+                            if(results.isEmpty()){
+                                uiThread {
+                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                            else{
+                                uiThread {
+                                    destinationText.setText(results[0].getAddressLine(0))
+                                }
+                            }
+                        }
+                    }
+                }
+                R.id.goButton -> {
+                    Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
+                }
+                R.id.alertsButton -> {
+                    Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        sourceButton.setOnClickListener(onClickListener)
+        destinationButton.setOnClickListener(onClickListener)
+        goButton.setOnClickListener(onClickListener)
+        alertsButton.setOnClickListener(onClickListener)
+
     }
 
     override fun onPause() {
         super.onPause()
-        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
     override fun onStop() {
         super.onStop()
-        //val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         setPrefs()
     }
 
-    fun setPrefs() {
+    private fun setPrefs() {
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         if (findViewById<Switch>(R.id.sourceSwitch).isChecked()) {
             val editor = prefs.edit()
@@ -93,7 +165,6 @@ class HomeScreenActivity : AppCompatActivity() {
 
     }
 
-
     class WelcomeDialogFragment : DialogFragment() {
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
             return activity?.let {
@@ -107,4 +178,5 @@ class HomeScreenActivity : AppCompatActivity() {
             } ?: throw IllegalStateException("Activity cannot be null")
         }
     }
+
 }

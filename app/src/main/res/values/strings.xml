@@ -8,4 +8,7 @@
     <string name="lets_go">LETS GO!</string>
     <string name="welcome">Welcome to Metroid</string>
     <string name="welcome_fragment">WelcomeFragment</string>
+    <string name="source_button_description">searches for possible sources</string>
+    <string name="destination_button_description">searches for possible destination</string>
+    <string name="title_activity_maps">Map</string>
 </resources>
