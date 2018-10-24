@@ -123,6 +123,8 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
                 R.id.alertsButton -> {
                     Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, AlertsActivity::class.java)
+                    startActivity(intent)
                 }
             }
         }
