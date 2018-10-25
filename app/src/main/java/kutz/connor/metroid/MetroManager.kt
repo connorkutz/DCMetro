@@ -11,7 +11,7 @@ import org.json.JSONObject
 
 class MetroManager(context: Context) {
 
-    val okHttpClient: OkHttpClient = OkHttpClient.Builder().let { builder ->
+    private val okHttpClient: OkHttpClient = OkHttpClient.Builder().let { builder ->
         // For printing request / response to logs
         val logging = HttpLoggingInterceptor()
         logging.level = HttpLoggingInterceptor.Level.BODY

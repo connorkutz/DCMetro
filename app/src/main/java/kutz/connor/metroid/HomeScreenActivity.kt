@@ -131,9 +131,18 @@ class HomeScreenActivity : AppCompatActivity() {
                     doAsync{
                         sourceStation = metroManager.getNearestStation(sourceAddress)
                         destinationStation = metroManager.getNearestStation(destinationAddress)
+                        if(sourceStation == null ||destinationStation == null){
+                            Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                        }
+                        else {
+                            intent.putExtra(MapsActivity.intentSourceStationLon, sourceStation?.lon)
+                            intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
+                            intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
+                            intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
+                            startActivity(intent)
+                        }
+
                     }
-                    //intent.putExtra(sourceStation)
-                    startActivity(intent)
                 }
                 R.id.alertsButton -> {
                     Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
