@@ -8,3 +8,5 @@
 /build
 /captures
 .externalNativeBuild
+google_maps_api.xml
+metro_api_token.xml

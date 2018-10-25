@@ -3,6 +3,7 @@ package kutz.connor.metroid
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.Intent
 import android.location.Geocoder
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -117,9 +118,13 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
                 R.id.goButton -> {
                     Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, MapsActivity::class.java)
+                    startActivity(intent)
                 }
                 R.id.alertsButton -> {
                     Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, AlertsActivity::class.java)
+                    startActivity(intent)
                 }
             }
         }
