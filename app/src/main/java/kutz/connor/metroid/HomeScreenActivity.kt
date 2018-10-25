@@ -3,6 +3,8 @@ package kutz.connor.metroid
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.DialogInterface
+import android.content.Intent
+import android.location.Address
 import android.location.Geocoder
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
@@ -41,6 +43,9 @@ class HomeScreenActivity : AppCompatActivity() {
         val destinationText = findViewById<EditText>(R.id.destinationText)
         val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
         val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
+        lateinit var sourceAddress : Address
+        lateinit var destinationAddress : Address
+        val metroManager = MetroManager(this)
 
 
         if (!welcomeScreenShown) {
@@ -85,7 +90,9 @@ class HomeScreenActivity : AppCompatActivity() {
                             }
                             else {
                                 uiThread {
-                                    sourceText.setText(results[0].getAddressLine(0))
+                                    sourceAddress = results[0]
+                                    sourceText.setText(sourceAddress.getAddressLine(0))
+
                                 }
                             }
                         }
@@ -109,7 +116,8 @@ class HomeScreenActivity : AppCompatActivity() {
                             }
                             else{
                                 uiThread {
-                                    destinationText.setText(results[0].getAddressLine(0))
+                                    destinationAddress = results[0]
+                                    destinationText.setText(destinationAddress.getAddressLine(0))
                                 }
                             }
                         }
@@ -117,6 +125,24 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
                 R.id.goButton -> {
                     Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this, MapsActivity::class.java)
+                    var sourceStation : Entrance?
+                    var destinationStation : Entrance?
+                    doAsync{
+                        sourceStation = metroManager.getNearestStation(sourceAddress)
+                        destinationStation = metroManager.getNearestStation(destinationAddress)
+                        if(sourceStation == null ||destinationStation == null){
+                            Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                        }
+                        else {
+                            intent.putExtra(MapsActivity.intentSourceStationLon, sourceStation?.lon)
+                            intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
+                            intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
+                            intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
+                            startActivity(intent)
+                        }
+
+                    }
                 }
                 R.id.alertsButton -> {
                     Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
