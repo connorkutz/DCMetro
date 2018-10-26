@@ -2,6 +2,7 @@ package kutz.connor.metroid
 
 import android.content.Context
 import android.location.Address
+import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
@@ -49,12 +50,34 @@ class MetroManager(context: Context) {
             return entrance
         }
         return null
-
     }
 
 
-    fun getAlerts(){
-
+    fun getAlerts(): MutableList<Incident>? {
+        val request = Request.Builder()
+                .header("api_key", apiToken)
+                .url("https://api.wmata.com/Incidents.svc/json/Incidents").build()
+        val call = okHttpClient.newCall(request)
+        val response = call.execute()
+        val body = response.body()
+        val responseString = response.body()?.string()
+        if(response.isSuccessful && body != null){
+            val incidents : MutableList<Incident> = arrayListOf()
+            val jsonIncidents = JSONObject(responseString).getJSONArray("Incidents")
+            for(i in 0 until jsonIncidents.length()){
+                val curr = jsonIncidents.getJSONObject(i)
+                val incident = Incident(curr.getString("Description"))
+                incident.dateUpdated = curr.getString("DateUpdated")
+                incident.incidentID = curr.getString("IncidentID")
+                incident.incidentType = curr.getString("IncidentType")
+                incident.linesAffected = curr.getString("LinesAffected")
+                incidents.add(incident)
+            }
+            return incidents
+        }
+        else {
+            return null
+        }
     }
 
 

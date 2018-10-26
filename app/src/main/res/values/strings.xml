@@ -12,4 +12,7 @@
     <string name="destination_button_description">searches for possible destination</string>
     <string name="title_activity_maps">Map</string>
     <string name="alert_image_description">image displayed for metro alerts</string>
+    <string name="OK">OK</string>
+    <string name="no_alerts">There are no Metro incidents at the moment.</string>
+    <string name="alert_fragment">AlertFragment</string>
 </resources>
