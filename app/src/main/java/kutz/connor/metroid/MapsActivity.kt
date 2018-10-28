@@ -2,11 +2,19 @@ package kutz.connor.metroid
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
+import android.content.Intent
+import android.net.Uri
+import android.support.design.widget.FloatingActionButton
+
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
@@ -15,7 +23,11 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val intentSourceStationLat = "source_station_lat"
         val intentDestinationStationLon = "destination_station_lon"
         val intentDestinationStationLat = "destination_station_lat"
+        val intentDestinationLat = "destination_lat"
+        val intentDestinationLon = "destination_lon"
+        val intentDestinationName = "destination_name"
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,8 +35,16 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         val mapFragment = supportFragmentManager
                 .findFragmentById(R.id.map) as SupportMapFragment
-
         mapFragment.getMapAsync(this)
+        val destinationLat = intent.getDoubleExtra(intentDestinationLat, 0.0)
+        val destinationLon = intent.getDoubleExtra(intentDestinationLon, 0.0)
+        val destinationName = intent.getStringExtra(intentDestinationName)
+        val googleMapsIntentButton = findViewById<FloatingActionButton>(R.id.mapIntentButton)
+        googleMapsIntentButton.setOnClickListener{
+            val intent = Intent(android.content.Intent.ACTION_VIEW,
+                    Uri.parse("http://maps.google.com/maps?daddr=$destinationLat,$destinationLon"))
+            startActivity(intent)
+        }
 
     }
 
@@ -50,6 +70,14 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             googleMap.addMarker(
                     MarkerOptions().position(LatLng(destinationLat, destinationLon)).title("Destination Station")
             )
+            val latLngBounds = LatLngBounds.builder()
+                    .include(LatLng(sourceLat, sourceLon))
+                    .include(LatLng(destinationLat, destinationLon))
+                    .build()
+            val padding = 175
+            val width = resources.displayMetrics.widthPixels
+            val height = resources.displayMetrics.heightPixels
+            googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, width, height, padding))
         }
     }
 }

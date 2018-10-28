@@ -2,10 +2,13 @@ package kutz.connor.metroid
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
@@ -43,6 +46,7 @@ class HomeScreenActivity : AppCompatActivity() {
         val destinationText = findViewById<EditText>(R.id.destinationText)
         val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
         val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
+        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         lateinit var sourceAddress : Address
         lateinit var destinationAddress : Address
         val metroManager = MetroManager(this)
@@ -77,15 +81,21 @@ class HomeScreenActivity : AppCompatActivity() {
                 R.id.sourceButton -> {
                     val locationName = sourceText.text
                     val maxResults = 1
+                    val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    } else {
+                        Toast.makeText(this, "@string/no_source", Toast.LENGTH_SHORT).show()
+                    }
+                    else if(!isConnected){
+                        Toast.makeText(this, "@string/no_network", Toast.LENGTH_SHORT).show()
+                    }
+                    else {
                         doAsync{
                             val geocoder = Geocoder(applicationContext)
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, "@string/no_results", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else {
@@ -103,15 +113,21 @@ class HomeScreenActivity : AppCompatActivity() {
                 R.id.destinationButton -> {
                     val locationName = destinationText.text
                     val maxResults = 1
+                    val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    } else {
+                        Toast.makeText(this, "@string/no_source", Toast.LENGTH_SHORT).show()
+                    }
+                    else if(!isConnected){
+                        Toast.makeText(this, "@string/no_network", Toast.LENGTH_SHORT).show()
+                    }
+                    else {
                         doAsync{
                             val geocoder = Geocoder(applicationContext)
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, "@string/no_results", Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else{
@@ -124,7 +140,6 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
                 R.id.goButton -> {
-                    Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, MapsActivity::class.java)
                     var sourceStation : Entrance?
                     var destinationStation : Entrance?
@@ -132,20 +147,24 @@ class HomeScreenActivity : AppCompatActivity() {
                         sourceStation = metroManager.getNearestStation(sourceAddress)
                         destinationStation = metroManager.getNearestStation(destinationAddress)
                         if(sourceStation == null ||destinationStation == null){
-                            Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                            runOnUiThread {
+                                Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                            }
                         }
                         else {
                             intent.putExtra(MapsActivity.intentSourceStationLon, sourceStation?.lon)
                             intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
                             intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
                             intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
+                            intent.putExtra(MapsActivity.intentDestinationLat, destinationAddress.latitude)
+                            intent.putExtra(MapsActivity.intentDestinationLon, destinationAddress.longitude)
+                            intent.putExtra(MapsActivity.intentDestinationName, destinationAddress.getAddressLine(0))
                             startActivity(intent)
                         }
 
                     }
                 }
                 R.id.alertsButton -> {
-                    Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, AlertsActivity::class.java)
                     startActivity(intent)
                 }

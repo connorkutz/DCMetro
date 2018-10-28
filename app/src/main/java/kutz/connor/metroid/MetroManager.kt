@@ -2,7 +2,6 @@ package kutz.connor.metroid
 
 import android.content.Context
 import android.location.Address
-import android.util.Log
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
@@ -40,6 +39,7 @@ class MetroManager(context: Context) {
         val responseString: String? = response.body()?.string()
         if (response.isSuccessful && body != null) {
             val jsonEntrances = JSONObject(responseString).getJSONArray("Entrances")
+            if (jsonEntrances.length() < 1){return null}
             val curr = jsonEntrances.getJSONObject(0)
             val entrance = Entrance(curr.getString("Description"))
             entrance.lat = curr.getDouble("Lat")

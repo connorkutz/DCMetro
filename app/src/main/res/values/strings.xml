@@ -15,4 +15,8 @@
     <string name="OK">OK</string>
     <string name="no_alerts">There are no Metro incidents at the moment.</string>
     <string name="alert_fragment">AlertFragment</string>
+    <string name="no_source">no source entered</string>
+    <string name="no_destination">no destination entered</string>
+    <string name="no_network">no network connection</string>
+    <string name="no_results">no results found</string>
 </resources>
