@@ -13,14 +13,18 @@ import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.DialogFragment
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Switch
 import android.widget.Toast
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_home_screen.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import android.graphics.Color
+import java.lang.Thread.sleep
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -116,10 +120,10 @@ class HomeScreenActivity : AppCompatActivity() {
                     val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
                     val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "@string/no_source", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.no_source), Toast.LENGTH_SHORT).show()
                     }
                     else if(!isConnected){
-                        Toast.makeText(this, "@string/no_network", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.no_network), Toast.LENGTH_SHORT).show()
                     }
                     else {
                         doAsync{
@@ -127,7 +131,7 @@ class HomeScreenActivity : AppCompatActivity() {
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "@string/no_results", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else{
@@ -143,22 +147,42 @@ class HomeScreenActivity : AppCompatActivity() {
                     val intent = Intent(this, MapsActivity::class.java)
                     var sourceStation : Entrance?
                     var destinationStation : Entrance?
+                    var metroPath : MutableList<MetroPathItem>?
                     doAsync{
                         sourceStation = metroManager.getNearestStation(sourceAddress)
                         destinationStation = metroManager.getNearestStation(destinationAddress)
-                        if(sourceStation == null ||destinationStation == null){
+
+                        metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode1)
+                        if(metroPath == null){
+                            metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode2)
+                        }
+                        if(metroPath == null){
+                            metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode1)
+                        }
+                        if(metroPath == null){
+                            metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode2)
+                        }
+                        if(metroPath == null ){
                             runOnUiThread {
-                                Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@HomeScreenActivity, getString(R.string.no_route), Toast.LENGTH_SHORT).show()
                             }
                         }
                         else {
+                            val latLngList : ArrayList<LatLng> = arrayListOf()
+                            for(item in metroPath!!){
+                                latLngList.add(metroManager.getStationLatLng(item.stationCode)!!)
+                            }
+                            val pathColor = metroPath!![0].lineCode
+                            val intColor = getColorInt(pathColor)
+
+                            intent.putExtra(MapsActivity.intentPathColor, getColorInt(pathColor))
+                            intent.putExtra(MapsActivity.intentPathList, latLngList)
                             intent.putExtra(MapsActivity.intentSourceStationLon, sourceStation?.lon)
                             intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
                             intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
                             intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
                             intent.putExtra(MapsActivity.intentDestinationLat, destinationAddress.latitude)
                             intent.putExtra(MapsActivity.intentDestinationLon, destinationAddress.longitude)
-                            intent.putExtra(MapsActivity.intentDestinationName, destinationAddress.getAddressLine(0))
                             startActivity(intent)
                         }
 
@@ -224,6 +248,28 @@ class HomeScreenActivity : AppCompatActivity() {
                 builder.create()
             } ?: throw IllegalStateException("Activity cannot be null")
         }
+    }
+
+    private fun getColorInt(color : String): Int{
+        if (color.equals("BL")){
+            return Color.BLUE
+        }
+        else if(color.equals("RD")){
+            return Color.RED
+        }
+        else if(color.equals("YL")){
+            return Color.YELLOW
+        }
+        else if(color.equals("OR")){
+            return Integer.parseInt("FF8C00")
+        }
+        else if(color.equals("GR")){
+            return Color.GREEN
+        }
+        else if(color.equals("SV")){
+            return Color.GRAY
+        }
+        return 0
     }
 
 }

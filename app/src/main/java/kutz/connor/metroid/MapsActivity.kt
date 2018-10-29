@@ -2,8 +2,6 @@ package kutz.connor.metroid
 
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.widget.Button
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
@@ -14,6 +12,8 @@ import com.google.android.gms.maps.model.MarkerOptions
 import android.content.Intent
 import android.net.Uri
 import android.support.design.widget.FloatingActionButton
+import android.util.Log
+import com.google.android.gms.maps.model.PolylineOptions
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
@@ -25,7 +25,8 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val intentDestinationStationLat = "destination_station_lat"
         val intentDestinationLat = "destination_lat"
         val intentDestinationLon = "destination_lon"
-        val intentDestinationName = "destination_name"
+        val intentPathList = "path_list"
+        val intentPathColor = "path_color"
     }
 
 
@@ -38,7 +39,6 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
         val destinationLat = intent.getDoubleExtra(intentDestinationLat, 0.0)
         val destinationLon = intent.getDoubleExtra(intentDestinationLon, 0.0)
-        val destinationName = intent.getStringExtra(intentDestinationName)
         val googleMapsIntentButton = findViewById<FloatingActionButton>(R.id.mapIntentButton)
         googleMapsIntentButton.setOnClickListener{
             val intent = Intent(android.content.Intent.ACTION_VIEW,
@@ -62,6 +62,15 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         val sourceLon = intent.getDoubleExtra(intentSourceStationLon, 0.0)
         val destinationLat = intent.getDoubleExtra(intentDestinationStationLat, 0.0)
         val destinationLon = intent.getDoubleExtra(intentDestinationStationLon, 0.0)
+        val latLngList = intent.getParcelableArrayListExtra<LatLng>(intentPathList)
+        val pathColor = intent.getIntExtra(intentPathColor, 0)
+
+
+        val polyLineOptions = PolylineOptions()
+        polyLineOptions.addAll(latLngList)
+        polyLineOptions.color(pathColor)
+
+        googleMap.addPolyline(polyLineOptions)
 
         if(sourceLat != 0.0 && destinationLat != 0.0) {
             googleMap.addMarker(
