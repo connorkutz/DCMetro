@@ -2,22 +2,29 @@ package kutz.connor.metroid
 
 import android.app.AlertDialog
 import android.app.Dialog
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.location.Address
 import android.location.Geocoder
+import android.net.ConnectivityManager
+import android.net.NetworkInfo
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.preference.PreferenceManager
 import android.support.v4.app.DialogFragment
+import android.util.Log
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.Switch
 import android.widget.Toast
+import com.google.android.gms.maps.model.LatLng
 import kotlinx.android.synthetic.main.activity_home_screen.*
 import org.jetbrains.anko.doAsync
 import org.jetbrains.anko.uiThread
+import android.graphics.Color
+import java.lang.Thread.sleep
 
 class HomeScreenActivity : AppCompatActivity() {
     private val welcomeScreenShownPref = "welcomeScreenShown"
@@ -43,8 +50,9 @@ class HomeScreenActivity : AppCompatActivity() {
         val destinationText = findViewById<EditText>(R.id.destinationText)
         val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
         val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
-        lateinit var sourceAddress : Address
-        lateinit var destinationAddress : Address
+        val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        var sourceAddress : Address? = null
+        var destinationAddress : Address? = null
         val metroManager = MetroManager(this)
 
 
@@ -77,21 +85,27 @@ class HomeScreenActivity : AppCompatActivity() {
                 R.id.sourceButton -> {
                     val locationName = sourceText.text
                     val maxResults = 1
+                    val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    } else {
+                        Toast.makeText(this, getString(R.string.no_source), Toast.LENGTH_SHORT).show()
+                    }
+                    else if(!isConnected){
+                        Toast.makeText(this, getString(R.string.no_network), Toast.LENGTH_SHORT).show()
+                    }
+                    else {
                         doAsync{
                             val geocoder = Geocoder(applicationContext)
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else {
                                 uiThread {
                                     sourceAddress = results[0]
-                                    sourceText.setText(sourceAddress.getAddressLine(0))
+                                    sourceText.setText(sourceAddress!!.getAddressLine(0))
 
                                 }
                             }
@@ -103,49 +117,100 @@ class HomeScreenActivity : AppCompatActivity() {
                 R.id.destinationButton -> {
                     val locationName = destinationText.text
                     val maxResults = 1
+                    val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
+                    val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "no source", Toast.LENGTH_SHORT).show()
-                    } else {
+                        Toast.makeText(this, getString(R.string.no_source), Toast.LENGTH_SHORT).show()
+                    }
+                    else if(!isConnected){
+                        Toast.makeText(this, getString(R.string.no_network), Toast.LENGTH_SHORT).show()
+                    }
+                    else {
                         doAsync{
                             val geocoder = Geocoder(applicationContext)
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "no results found", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else{
                                 uiThread {
                                     destinationAddress = results[0]
-                                    destinationText.setText(destinationAddress.getAddressLine(0))
+                                    destinationText.setText(destinationAddress!!.getAddressLine(0))
                                 }
                             }
                         }
                     }
                 }
                 R.id.goButton -> {
-                    Toast.makeText(this, "you clicked GO", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, MapsActivity::class.java)
                     var sourceStation : Entrance?
                     var destinationStation : Entrance?
+                    var metroPath : MutableList<MetroPathItem>?
                     doAsync{
+                        if(sourceText.text.toString() == ""){
+                            uiThread {
+                                Toast.makeText(applicationContext, "Please type a source", Toast.LENGTH_SHORT).show()
+                            }
+                            return@doAsync
+                        }
+                        if(destinationText.text.toString() == ""){
+                            uiThread {
+                                Toast.makeText(applicationContext, "Please type a destination", Toast.LENGTH_SHORT).show()
+                            }
+                            return@doAsync
+                        }
+
                         sourceStation = metroManager.getNearestStation(sourceAddress)
                         destinationStation = metroManager.getNearestStation(destinationAddress)
-                        if(sourceStation == null ||destinationStation == null){
-                            Toast.makeText(this@HomeScreenActivity, "check your locations", Toast.LENGTH_SHORT).show()
+                        if(sourceStation == null){
+                            uiThread {
+                                Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+
+                        metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode1)
+                        if(metroPath == null){
+                            sleep(200)
+                            metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode2)
+                        }
+                        if(metroPath == null){
+                            sleep(200)
+                            metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode1)
+                        }
+                        if(metroPath == null){
+                            sleep(200)
+                            metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode2)
+                        }
+                        if(metroPath == null ){
+                            runOnUiThread {
+                                Toast.makeText(this@HomeScreenActivity, getString(R.string.no_route), Toast.LENGTH_SHORT).show()
+                            }
                         }
                         else {
+                            val latLngList : ArrayList<LatLng> = arrayListOf()
+                            for(item in metroPath!!){
+                                sleep(200)
+                                latLngList.add(metroManager.getStationLatLng(item.stationCode)!!)
+                            }
+                            val pathColor = metroPath!![0].lineCode
+
+                            intent.putExtra(MapsActivity.intentPathColor, getColorInt(pathColor))
+                            intent.putExtra(MapsActivity.intentPathList, latLngList)
                             intent.putExtra(MapsActivity.intentSourceStationLon, sourceStation?.lon)
                             intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
                             intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
                             intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
+                            intent.putExtra(MapsActivity.intentDestinationLat, destinationAddress!!.latitude)
+                            intent.putExtra(MapsActivity.intentDestinationLon, destinationAddress!!.longitude)
+                            intent.putExtra(MapsActivity.intentDestinationName, destinationText.text.toString())
                             startActivity(intent)
                         }
 
                     }
                 }
                 R.id.alertsButton -> {
-                    Toast.makeText(this, "you clicked ALERTS", Toast.LENGTH_SHORT).show()
                     val intent = Intent(this, AlertsActivity::class.java)
                     startActivity(intent)
                 }
@@ -205,6 +270,28 @@ class HomeScreenActivity : AppCompatActivity() {
                 builder.create()
             } ?: throw IllegalStateException("Activity cannot be null")
         }
+    }
+
+    private fun getColorInt(color : String): Int{
+        if (color.equals("BL")){
+            return Color.BLUE
+        }
+        else if(color.equals("RD")){
+            return Color.RED
+        }
+        else if(color.equals("YL")){
+            return Color.YELLOW
+        }
+        else if(color.equals("OR")){
+            return Integer.parseInt("FF8C00")
+        }
+        else if(color.equals("GR")){
+            return Color.GREEN
+        }
+        else if(color.equals("SV")){
+            return Color.GRAY
+        }
+        return 0
     }
 
 }
