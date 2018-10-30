@@ -26,7 +26,11 @@ class MetroManager(context: Context) {
     }
     private var apiToken = context.getString(R.string.metro_api_token)
 
-    fun getNearestStation(address: Address): Entrance? {
+    fun getNearestStation(address: Address?): Entrance? {
+
+        if (address == null){
+            return null
+        }
         val lon = address.longitude
         val lat = address.latitude
         val radius = 1600

@@ -51,8 +51,8 @@ class HomeScreenActivity : AppCompatActivity() {
         val sourceButton = findViewById<ImageButton>(R.id.sourceButton)
         val destinationButton = findViewById<ImageButton>(R.id.destinationButton)
         val cm = this.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        lateinit var sourceAddress : Address
-        lateinit var destinationAddress : Address
+        var sourceAddress : Address? = null
+        var destinationAddress : Address? = null
         val metroManager = MetroManager(this)
 
 
@@ -88,10 +88,10 @@ class HomeScreenActivity : AppCompatActivity() {
                     val activeNetwork: NetworkInfo? = cm.activeNetworkInfo
                     val isConnected: Boolean = activeNetwork?.isConnectedOrConnecting == true
                     if (locationName.equals("")) {
-                        Toast.makeText(this, "@string/no_source", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.no_source), Toast.LENGTH_SHORT).show()
                     }
                     else if(!isConnected){
-                        Toast.makeText(this, "@string/no_network", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this, getString(R.string.no_network), Toast.LENGTH_SHORT).show()
                     }
                     else {
                         doAsync{
@@ -99,13 +99,13 @@ class HomeScreenActivity : AppCompatActivity() {
                             val results = geocoder.getFromLocationName(locationName.toString(), maxResults)
                             if(results.isEmpty()){
                                 uiThread {
-                                    Toast.makeText(applicationContext, "@string/no_results", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
                                 }
                             }
                             else {
                                 uiThread {
                                     sourceAddress = results[0]
-                                    sourceText.setText(sourceAddress.getAddressLine(0))
+                                    sourceText.setText(sourceAddress!!.getAddressLine(0))
 
                                 }
                             }
@@ -137,7 +137,7 @@ class HomeScreenActivity : AppCompatActivity() {
                             else{
                                 uiThread {
                                     destinationAddress = results[0]
-                                    destinationText.setText(destinationAddress.getAddressLine(0))
+                                    destinationText.setText(destinationAddress!!.getAddressLine(0))
                                 }
                             }
                         }
@@ -149,17 +149,38 @@ class HomeScreenActivity : AppCompatActivity() {
                     var destinationStation : Entrance?
                     var metroPath : MutableList<MetroPathItem>?
                     doAsync{
+                        if(sourceText.text.toString() == ""){
+                            uiThread {
+                                Toast.makeText(applicationContext, "Please type a source", Toast.LENGTH_SHORT).show()
+                            }
+                            return@doAsync
+                        }
+                        if(destinationText.text.toString() == ""){
+                            uiThread {
+                                Toast.makeText(applicationContext, "Please type a destination", Toast.LENGTH_SHORT).show()
+                            }
+                            return@doAsync
+                        }
+
                         sourceStation = metroManager.getNearestStation(sourceAddress)
                         destinationStation = metroManager.getNearestStation(destinationAddress)
+                        if(sourceStation == null){
+                            uiThread {
+                                Toast.makeText(applicationContext, getString(R.string.no_results), Toast.LENGTH_SHORT).show()
+                            }
+                        }
 
                         metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode1)
                         if(metroPath == null){
+                            sleep(200)
                             metroPath = metroManager.getPath(sourceStation?.stationCode1, destinationStation?.stationCode2)
                         }
                         if(metroPath == null){
+                            sleep(200)
                             metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode1)
                         }
                         if(metroPath == null){
+                            sleep(200)
                             metroPath = metroManager.getPath(sourceStation?.stationCode2, destinationStation?.stationCode2)
                         }
                         if(metroPath == null ){
@@ -170,10 +191,10 @@ class HomeScreenActivity : AppCompatActivity() {
                         else {
                             val latLngList : ArrayList<LatLng> = arrayListOf()
                             for(item in metroPath!!){
+                                sleep(200)
                                 latLngList.add(metroManager.getStationLatLng(item.stationCode)!!)
                             }
                             val pathColor = metroPath!![0].lineCode
-                            val intColor = getColorInt(pathColor)
 
                             intent.putExtra(MapsActivity.intentPathColor, getColorInt(pathColor))
                             intent.putExtra(MapsActivity.intentPathList, latLngList)
@@ -181,8 +202,9 @@ class HomeScreenActivity : AppCompatActivity() {
                             intent.putExtra(MapsActivity.intentSourceStationLat, sourceStation?.lat)
                             intent.putExtra(MapsActivity.intentDestinationStationLon, destinationStation?.lon)
                             intent.putExtra(MapsActivity.intentDestinationStationLat, destinationStation?.lat)
-                            intent.putExtra(MapsActivity.intentDestinationLat, destinationAddress.latitude)
-                            intent.putExtra(MapsActivity.intentDestinationLon, destinationAddress.longitude)
+                            intent.putExtra(MapsActivity.intentDestinationLat, destinationAddress!!.latitude)
+                            intent.putExtra(MapsActivity.intentDestinationLon, destinationAddress!!.longitude)
+                            intent.putExtra(MapsActivity.intentDestinationName, destinationText.text.toString())
                             startActivity(intent)
                         }
 

@@ -10,23 +10,24 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.LatLngBounds
 import com.google.android.gms.maps.model.MarkerOptions
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.support.design.widget.FloatingActionButton
-import android.util.Log
 import com.google.android.gms.maps.model.PolylineOptions
 
 
 class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
     companion object {
-        val intentSourceStationLon = "source_station_lon"
-        val intentSourceStationLat = "source_station_lat"
-        val intentDestinationStationLon = "destination_station_lon"
-        val intentDestinationStationLat = "destination_station_lat"
-        val intentDestinationLat = "destination_lat"
-        val intentDestinationLon = "destination_lon"
-        val intentPathList = "path_list"
-        val intentPathColor = "path_color"
+        const val intentSourceStationLon = "source_station_lon"
+        const val intentSourceStationLat = "source_station_lat"
+        const val intentDestinationStationLon = "destination_station_lon"
+        const val intentDestinationStationLat = "destination_station_lat"
+        const val intentDestinationLat = "destination_lat"
+        const val intentDestinationLon = "destination_lon"
+        const val intentDestinationName = "destination_name"
+        const val intentPathList = "path_list"
+        const val intentPathColor = "path_color"
     }
 
 
@@ -39,12 +40,26 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
         mapFragment.getMapAsync(this)
         val destinationLat = intent.getDoubleExtra(intentDestinationLat, 0.0)
         val destinationLon = intent.getDoubleExtra(intentDestinationLon, 0.0)
+        val destinationName = intent.getStringExtra(intentDestinationName)
         val googleMapsIntentButton = findViewById<FloatingActionButton>(R.id.mapIntentButton)
+        val shareButton = findViewById<FloatingActionButton>(R.id.shareButton)
+        val lineColorInt = intent.getIntExtra(intentPathColor, 0)
+        val lineColorString = getColorString(lineColorInt)
+
         googleMapsIntentButton.setOnClickListener{
             val intent = Intent(android.content.Intent.ACTION_VIEW,
                     Uri.parse("http://maps.google.com/maps?daddr=$destinationLat,$destinationLon"))
             startActivity(intent)
         }
+        shareButton.setOnClickListener {
+            val intent: Intent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, "Metroing to $destinationName via the $lineColorString line")
+                type = "text/plain"
+            }
+            startActivity(intent)
+        }
+
 
     }
 
@@ -88,5 +103,27 @@ class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
             val height = resources.displayMetrics.heightPixels
             googleMap.animateCamera(CameraUpdateFactory.newLatLngBounds(latLngBounds, width, height, padding))
         }
+    }
+
+    private fun getColorString(colorInt : Int) : String{
+        if (colorInt == Color.BLUE){
+            return "blue"
+        }
+        if (colorInt == Color.RED){
+            return "red"
+        }
+        if (colorInt == Color.YELLOW){
+            return "yellow"
+        }
+        if (colorInt == Integer.parseInt("FF8C00")){
+            return "orange"
+        }
+        if (colorInt == Color.GREEN){
+            return "green"
+        }
+        if (colorInt == Color.GRAY){
+            return "silver"
+        }
+        return "oops"
     }
 }
